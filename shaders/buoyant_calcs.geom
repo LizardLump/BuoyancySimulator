@@ -229,12 +229,8 @@ vec3 upwardTrianglePointOfApplication(vec3 A, vec3 B, vec3 C) {
     if (z0 < 0) {
         z0 = 0;
     }
-    if (h == 0) {
-        tc = 0.5;
-    }
-    else {
-        tc = (4 * z0 + 3 * h) / (6 * z0 + 4 * h);
-    }
+    
+    tc = (4 * z0 + 3 * h) / (6 * z0 + 4 * h);
 
     vec3 D = (C + B) / 2;
     vec3 AD = D - A;
@@ -252,12 +248,8 @@ vec3 downwardTrianglePointOfApplication(vec3 A, vec3 B, vec3 C) {
     if (z0 < 0) {
         z0 = 0;
     }
-    if (h == 0) {
-        tc = 0.5;
-    }
-    else {
-        tc = (2 * z0 + h) / (6 * z0 + 2 * h);
-    }
+
+    tc = (2 * z0 + h) / (6 * z0 + 2 * h);
     
     vec3 D = (C + B) / 2;
     vec3 DA = A - D;
@@ -422,7 +414,7 @@ void setTriangleForceAndTorque(inout vec3[3] forcesArray, inout vec3[3] torquesA
     float upCosVelocityNormal = triangleVelocityNormalCos(upVelocity, tNormal);
     float downCosVelocityNormal = triangleVelocityNormalCos(downVelocity, tNormal);
 
-    if (upArea != 0) {
+    if (upArea >= 0.01) {
         // Buoyancy Force
         upForce += buoyancyForce(upPointOfApplication, tNormal, upArea);
 
@@ -435,7 +427,7 @@ void setTriangleForceAndTorque(inout vec3[3] forcesArray, inout vec3[3] torquesA
         // Torque
         upTorque = cross(upPointOfApplication - worldCenterOfMass, upForce);
     }
-    if (downArea != 0) {
+    if (downArea >= 0.01) {
         // Buoyancy Force
         downForce += buoyancyForce(downPointOfApplication, tNormal, downArea);
 
@@ -443,7 +435,7 @@ void setTriangleForceAndTorque(inout vec3[3] forcesArray, inout vec3[3] torquesA
         downForce += viscousWaterResistance(tNormal, downArea, downVelocity, downVelocityMagnitude, resC);
 
         // Pressure Drag Force
-        upForce += pressureDragForce(tNormal, upArea, upVelocityMagnitude, upCosVelocityNormal);
+        downForce += pressureDragForce(tNormal, downArea, downVelocityMagnitude, downCosVelocityNormal);
 
         // Torque
         downTorque = cross(downPointOfApplication - worldCenterOfMass, downForce);
