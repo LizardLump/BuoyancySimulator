@@ -96,6 +96,9 @@ void render() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, camera->windowWidth, camera->windowHeight);
 
+    // Enable wireframe mode (debugging purposes; remove later)
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
     // Run the buoyant shaders on buoyant models 
     {
         // Get shader uniform locations and calculate needed data
@@ -451,10 +454,11 @@ int main(int argc, char* argv[]) {
     oceanPlane->SetScale(vec3(64, 0, 64));
     if (argc > 1) {
         for (int i = 1; i < argc; i++) {
-            shared_ptr<Buoyant> buoyant = make_shared<Buoyant>(argv[i]);
-            for (int j = 0; j < 250; j++ ) {
-                buoyantModels.push_back(buoyant);
-            }
+            // shared_ptr<Buoyant> buoyant = make_shared<Buoyant>(argv[i]);
+            // for (int j = 0; j < 250; j++ ) {
+            //     buoyantModels.push_back(buoyant);
+            // }
+            buoyantModels.push_back(make_shared<Buoyant>(argv[i]));
         }
     }
     else {
