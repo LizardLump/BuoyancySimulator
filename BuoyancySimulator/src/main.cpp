@@ -59,6 +59,7 @@ void updateEllapsedTime() {
     GLuint newTime = glutGet(GLUT_ELAPSED_TIME);
     oldFrameFrequency = frameFrequency;
     frameFrequency = newTime - elapsedTime;
+    cout << "New time measurement (" << frameFrequency << ")\n" << flush;
     elapsedTime = newTime;
 }
 
@@ -96,7 +97,7 @@ void render() {
     glViewport(0, 0, camera->windowWidth, camera->windowHeight);
 
     // Enable wireframe mode (debugging purposes; remove later)
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // Run the buoyant shaders on buoyant models 
     {
@@ -288,8 +289,8 @@ void render() {
     }
 
     // Force redraw
+    glFlush();
     glutPostRedisplay();
-    glutSwapBuffers();
 }
 
 void resizeWindow(int x, int y) {
@@ -376,14 +377,6 @@ void initSSBOs() {
     //float tmpSpeed[4] = {0, 3.1415 * 0.1, 0, 0};
     float maxSplitTrianglesZeroVec4s[maxTriangleCount * 3 * 4];
     memset(maxSplitTrianglesZeroVec4s, 0, sizeof(maxSplitTrianglesZeroVec4s));
-    float maxTrianglesZeroVec4s[maxTriangleCount * 4];
-    memset(maxTrianglesZeroVec4s, 0, sizeof(maxTrianglesZeroVec4s));
-    float maxTrianglesZeroFloats[maxTriangleCount];
-    memset(maxTrianglesZeroFloats, 0, sizeof(maxTrianglesZeroFloats));
-    float maxTrianglesZeroFloatsPerBoat[buoyantModels.size() * maxTriangleCount];
-    memset(maxTrianglesZeroFloatsPerBoat, 0, sizeof(maxTrianglesZeroFloatsPerBoat));
-    float maxTrianglesZeroVec4sPerBoat[buoyantModels.size() * maxTriangleCount * 4];
-    memset(maxTrianglesZeroVec4sPerBoat, 0, sizeof(maxTrianglesZeroVec4sPerBoat));
 
     // GLuint boatPositionsSSBO, forcesSSBO, boatVelocitiesSSBO,
     //   boatAngularPositionsSSBO, boatAngularPositionsSSBO, torquesSSBO;
@@ -408,16 +401,6 @@ void initSSBOs() {
     glBufferData(GL_SHADER_STORAGE_BUFFER, buoyantModels.size() * sizeof(vec4), nBoatsZeroVec4s, GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, boatAngularVelocitiesSSBO);
 
-    glGenBuffers(1, &boatOldTriangleVelocitiesSSBO);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, boatOldTriangleVelocitiesSSBO);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, buoyantModels.size() * maxTriangleCount * sizeof(vec4), maxTrianglesZeroVec4sPerBoat, GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, boatOldTriangleVelocitiesSSBO);
-
-    glGenBuffers(1, &boatOldSubmergedAreasSSBO);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, boatOldSubmergedAreasSSBO);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, buoyantModels.size() * maxTriangleCount * sizeof(float), maxTrianglesZeroFloatsPerBoat, GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, boatOldSubmergedAreasSSBO);
-
     glGenBuffers(1, &boatAngularPositionsSSBO);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, boatAngularPositionsSSBO);
     glBufferData(GL_SHADER_STORAGE_BUFFER, buoyantModels.size() * sizeof(vec4), nBoatsTrailingOnesVec4s, GL_DYNAMIC_DRAW);
@@ -435,7 +418,7 @@ int main(int argc, char* argv[]) {
     // GLUT initialization and context creation
     cout << "Initializing GLUT\n" << flush;
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA | GLUT_MULTISAMPLE);
+    glutInitDisplayMode(GLUT_DEPTH | GLUT_SINGLE | GLUT_RGBA | GLUT_MULTISAMPLE);
     glutInitContextVersion(4,6);
     glutInitContextProfile(GLUT_CORE_PROFILE);
     glutInitContextFlags(GLUT_FORWARD_COMPATIBLE);
@@ -471,6 +454,10 @@ int main(int argc, char* argv[]) {
     oceanPlane->SetScale(vec3(64, 0, 64));
     if (argc > 1) {
         for (int i = 1; i < argc; i++) {
+            // shared_ptr<Buoyant> buoyant = make_shared<Buoyant>(argv[i]);
+            // for (int j = 0; j < 250; j++ ) {
+            //     buoyantModels.push_back(buoyant);
+            // }
             buoyantModels.push_back(make_shared<Buoyant>(argv[i]));
         }
     }
@@ -492,6 +479,7 @@ int main(int argc, char* argv[]) {
     initSSBOs();
 
     // Begin main loop
+    cout << "Initialization done (" << glutGet(GLUT_ELAPSED_TIME) << ")\n" << flush;
     cout << "Entering main render loop\n" << flush;
     glutMainLoop();
 

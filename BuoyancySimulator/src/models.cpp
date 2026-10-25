@@ -21,6 +21,7 @@ using namespace glm;
 
 Model::Model(string objFilename, float volume, vec3 worldPosition, bool voxelsDebug)
 {
+    cout << "Starting to load model (" << glutGet(GLUT_ELAPSED_TIME) << ")\n" << flush;
     // Load .obj
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
@@ -145,7 +146,7 @@ Model::Model(string objFilename, float volume, vec3 worldPosition, bool voxelsDe
     this->scale = mat4(1.0f);
     UpdateMatrices();
 
-    cout << "Finished loading model " << objFilename << endl;
+    cout << "Finished loading model (" << glutGet(GLUT_ELAPSED_TIME) << endl;
 
     // Calculate dimensions
     this->totalArea = 0;

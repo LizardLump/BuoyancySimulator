@@ -1,0 +1,8 @@
+modelFile=boat.obj
+mass=7000
+worldPosition=0,30,0
+centerOfMass=0,0.5,-0.5
+automateInertia=true
+automateVolume=true
+propulsionPointOfApplication=0,0,-3.761806
+propulsionForce=0,0,10000
