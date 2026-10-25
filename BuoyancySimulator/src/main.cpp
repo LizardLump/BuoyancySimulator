@@ -11,6 +11,8 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "renderdoc_app.h"
+#include <dlfcn.h>
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #define GLM_ENABLE_EXPERIMENTAL
@@ -49,23 +51,31 @@ shared_ptr<Shader> buoyantApplicationShader;
 shared_ptr<Shader> forceVisualizationShader;
 shared_ptr<Shader> cameraShader;
 
+bool firstStep = true;
 GLuint elapsedTime = 0;
 GLuint frameFrequency = 0;
 GLuint oldFrameFrequency = 0;
 
 bool propulsionOn = false;
+bool capturePressed = false;
+
+RENDERDOC_API_1_1_2 *rdoc_api = NULL;
 
 void updateEllapsedTime() {
     GLuint newTime = glutGet(GLUT_ELAPSED_TIME);
     oldFrameFrequency = frameFrequency;
     frameFrequency = newTime - elapsedTime;
-    cout << "New time measurement (" << frameFrequency << ")\n" << flush;
+    cout << frameFrequency << "\n" << flush;
     elapsedTime = newTime;
 }
 
 void render() {
     // Get frame frequency
     updateEllapsedTime();
+    if (firstStep) {
+        updateEllapsedTime();
+        firstStep = false;
+    }
 
     // Update camera
     camera->Update(frameFrequency);
@@ -100,6 +110,7 @@ void render() {
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // Run the buoyant shaders on buoyant models 
+    if(rdoc_api && capturePressed) rdoc_api->StartFrameCapture(NULL, NULL);
     {
         // Get shader uniform locations and calculate needed data
         mat4 m_vp = camera->GetViewProjectionMatrix();
@@ -259,6 +270,10 @@ void render() {
             glMemoryBarrier(GL_ALL_BARRIER_BITS);
         }
     }
+    if(rdoc_api && capturePressed) {
+        rdoc_api->EndFrameCapture(NULL, NULL);
+        capturePressed = false;
+    }
     
 
     // Draw ocean
@@ -318,6 +333,9 @@ void pressSpecialKey(int key, int x, int y) {
     }
     else if (key == GLUT_KEY_DOWN) {
         propulsionOn = false;
+    }
+    else if (key == GLUT_KEY_F1) {
+        capturePressed = true;
     }
 }
 
@@ -454,11 +472,11 @@ int main(int argc, char* argv[]) {
     oceanPlane->SetScale(vec3(64, 0, 64));
     if (argc > 1) {
         for (int i = 1; i < argc; i++) {
-            // shared_ptr<Buoyant> buoyant = make_shared<Buoyant>(argv[i]);
-            // for (int j = 0; j < 250; j++ ) {
-            //     buoyantModels.push_back(buoyant);
-            // }
-            buoyantModels.push_back(make_shared<Buoyant>(argv[i]));
+            shared_ptr<Buoyant> buoyant = make_shared<Buoyant>(argv[i]);
+            for (int j = 0; j < 1; j++ ) {
+                buoyantModels.push_back(buoyant);
+            }
+            // buoyantModels.push_back(make_shared<Buoyant>(argv[i]));
         }
     }
     else {
@@ -477,6 +495,14 @@ int main(int argc, char* argv[]) {
 
     // Initialize SSBOs
     initSSBOs();
+
+    // Init RenderDoc API
+    if(void *mod = dlopen("librenderdoc.so", RTLD_NOW | RTLD_NOLOAD))
+    {
+        pRENDERDOC_GetAPI RENDERDOC_GetAPI = (pRENDERDOC_GetAPI)dlsym(mod, "RENDERDOC_GetAPI");
+        int ret = RENDERDOC_GetAPI(eRENDERDOC_API_Version_1_1_2, (void **)&rdoc_api);
+        assert(ret == 1);
+    }
 
     // Begin main loop
     cout << "Initialization done (" << glutGet(GLUT_ELAPSED_TIME) << ")\n" << flush;

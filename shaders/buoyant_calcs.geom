@@ -398,6 +398,9 @@ void setTriangleForceAndTorque(inout vec3[3] forcesArray, inout vec3[3] torquesA
     vec3 upTorque = vec3(0.0);
     vec3 downTorque = vec3(0.0);
 
+    // Whole triangle area
+    float wholeArea = triangleArea(vertices[index * 3], vertices[index * 3 + 1], vertices[index * 3 + 2]);
+
     // Triangle splitting
     vec3[2][3] horBaseTriangles;
     horizontalBaseSplit(vec3[3](vertices[index * 3], vertices[index * 3 + 1], vertices[index * 3 + 2]), horBaseTriangles);
@@ -414,31 +417,34 @@ void setTriangleForceAndTorque(inout vec3[3] forcesArray, inout vec3[3] torquesA
     float upCosVelocityNormal = triangleVelocityNormalCos(upVelocity, tNormal);
     float downCosVelocityNormal = triangleVelocityNormalCos(downVelocity, tNormal);
 
-    if (upArea >= 0.01) {
-        // Buoyancy Force
-        upForce += buoyancyForce(upPointOfApplication, tNormal, upArea);
 
-        // Viscous Water Resistance
-        upForce += viscousWaterResistance(tNormal, upArea, upVelocity, upVelocityMagnitude, resC);
+    if (wholeArea  > 0.01) {
+        if (upArea >= 0.02 * wholeArea) {
+            // Buoyancy Force
+            upForce += buoyancyForce(upPointOfApplication, tNormal, upArea);
 
-        // Pressure Drag Force
-        upForce += pressureDragForce(tNormal, upArea, upVelocityMagnitude, upCosVelocityNormal);
+            // Viscous Water Resistance
+            upForce += viscousWaterResistance(tNormal, upArea, upVelocity, upVelocityMagnitude, resC);
 
-        // Torque
-        upTorque = cross(upPointOfApplication - worldCenterOfMass, upForce);
-    }
-    if (downArea >= 0.01) {
-        // Buoyancy Force
-        downForce += buoyancyForce(downPointOfApplication, tNormal, downArea);
+            // Pressure Drag Force
+            upForce += pressureDragForce(tNormal, upArea, upVelocityMagnitude, upCosVelocityNormal);
 
-        // Viscous Water Resistance
-        downForce += viscousWaterResistance(tNormal, downArea, downVelocity, downVelocityMagnitude, resC);
+            // Torque
+            upTorque = cross(upPointOfApplication - worldCenterOfMass, upForce);
+        }
+        if (downArea >= 0.02 * wholeArea) {
+            // Buoyancy Force
+            downForce += buoyancyForce(downPointOfApplication, tNormal, downArea);
 
-        // Pressure Drag Force
-        downForce += pressureDragForce(tNormal, downArea, downVelocityMagnitude, downCosVelocityNormal);
+            // Viscous Water Resistance
+            downForce += viscousWaterResistance(tNormal, downArea, downVelocity, downVelocityMagnitude, resC);
 
-        // Torque
-        downTorque = cross(downPointOfApplication - worldCenterOfMass, downForce);
+            // Pressure Drag Force
+            downForce += pressureDragForce(tNormal, downArea, downVelocityMagnitude, downCosVelocityNormal);
+
+            // Torque
+            downTorque = cross(downPointOfApplication - worldCenterOfMass, downForce);
+        }
     }
 
     // Final sum

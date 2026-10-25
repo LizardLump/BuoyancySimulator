@@ -1,5 +1,6 @@
 import sys
 
+EDGE_DISTANCE = 10
 quads_per_edge = int(sys.argv[1])
 
 with open(f"cube_{quads_per_edge}.obj", "w") as file:
@@ -8,27 +9,27 @@ with open(f"cube_{quads_per_edge}.obj", "w") as file:
     # Up face
     for x in range(quads_per_edge + 1):
         for z in range(quads_per_edge + 1):
-            file.write(f"v {-0.5 + 1/quads_per_edge * x} 0.5 {-0.5 + 1/quads_per_edge * z}\n")
+            file.write(f"v {-EDGE_DISTANCE/2 + EDGE_DISTANCE/quads_per_edge * x} {EDGE_DISTANCE/2} {-EDGE_DISTANCE/2 + EDGE_DISTANCE/quads_per_edge * z}\n")
     # Down face
     for x in range(quads_per_edge + 1):
         for z in range(quads_per_edge + 1):
-            file.write(f"v {-0.5 + 1/quads_per_edge * x} -0.5 {-0.5 + 1/quads_per_edge * z}\n")
+            file.write(f"v {-EDGE_DISTANCE/2 + EDGE_DISTANCE/quads_per_edge * x} {-EDGE_DISTANCE/2} {-EDGE_DISTANCE/2 + EDGE_DISTANCE/quads_per_edge * z}\n")
     # Left face
     for z in range(quads_per_edge + 1):
         for y in range(quads_per_edge + 1):
-            file.write(f"v -0.5 {-0.5 + 1/quads_per_edge * y} {-0.5 + 1/quads_per_edge * z}\n")
+            file.write(f"v {-EDGE_DISTANCE/2} {-EDGE_DISTANCE/2 + EDGE_DISTANCE/quads_per_edge * y} {-EDGE_DISTANCE/2 + EDGE_DISTANCE/quads_per_edge * z}\n")
     # Right face
     for z in range(quads_per_edge + 1):
         for y in range(quads_per_edge + 1):
-            file.write(f"v 0.5 {-0.5 + 1/quads_per_edge * y} {-0.5 + 1/quads_per_edge * z}\n")
+            file.write(f"v {EDGE_DISTANCE/2} {-EDGE_DISTANCE/2 + EDGE_DISTANCE/quads_per_edge * y} {-EDGE_DISTANCE/2 + EDGE_DISTANCE/quads_per_edge * z}\n")
     # Back face
     for x in range(quads_per_edge + 1):
         for y in range(quads_per_edge + 1):
-            file.write(f"v {-0.5 + 1/quads_per_edge * x} {-0.5 + 1/quads_per_edge * y} -0.5\n")
+            file.write(f"v {-EDGE_DISTANCE/2 + EDGE_DISTANCE/quads_per_edge * x} {-EDGE_DISTANCE/2 + EDGE_DISTANCE/quads_per_edge * y} {-EDGE_DISTANCE/2}\n")
     # Front face
     for x in range(quads_per_edge + 1):
         for y in range(quads_per_edge + 1):
-            file.write(f"v {-0.5 + 1/quads_per_edge * x} {-0.5 + 1/quads_per_edge * y} 0.5\n")
+            file.write(f"v {-EDGE_DISTANCE/2 + EDGE_DISTANCE/quads_per_edge * x} {-EDGE_DISTANCE/2 + EDGE_DISTANCE/quads_per_edge * y} {EDGE_DISTANCE/2}\n")
 
     # Normals
     file.write("vn 1 0 0\n")

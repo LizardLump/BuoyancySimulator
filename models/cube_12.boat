@@ -1,0 +1,6 @@
+modelFile=cube_12.obj
+mass=997000
+worldPosition=0,-20,0
+centerOfMass=0,-1,0
+volume=1000
+automateInertia=true
